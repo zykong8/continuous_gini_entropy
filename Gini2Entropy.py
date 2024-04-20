@@ -7,6 +7,7 @@ from entropy_estimators import continuous
 
 def GetGini(arr):
     uniqVal, counts = np.unique(np.sort(np.append(arr, 0)), return_counts=True)
+    counts[0] = 0
     stat = pd.DataFrame({"UniqVal":uniqVal, "Counts":counts})
 
     stat["totalVal"] = stat["UniqVal"] * stat['Counts']
@@ -16,11 +17,18 @@ def GetGini(arr):
     stat["countCum"] = stat["Counts"].cumsum()
     stat["countRatio"] = stat["countCum"] / stat["countCum"].max()
 
+    # save
+    # stat.plot(x="countRatio", y="totalValRatio")
+    lorenzCurve = pd.DataFrame(
+        {"xRatio": stat["countRatio"], "yRatio":stat["totalValRatio"]}
+    )
+    lorenzCurve.to_excel("Lorenz_Curve.xlsx", header=True, index=False)
+
+    # Gini 
     B = np.trapz(y=stat["totalValRatio"], x=stat["countRatio"])
     A = 0.5 - B
     G = A / (A + B)
 
-    # stat.plot(x="countRatio", y="totalValRatio")
     return(f'{G:0.6f}')
 
 def GetEntropy(arr):
